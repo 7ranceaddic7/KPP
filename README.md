@@ -1,5 +1,4 @@
-# KPP
-KSP Part Purger
+# KPP - KSP Part Purger
 
 Dear KSP Players
 

@@ -38,6 +38,7 @@ public class CatalogController implements Initializable {
 
     public Button exportAction;
     public Button importAction;
+    public Button resolveAction;
 
     public void initialize(URL location, ResourceBundle resources) {
         ColumnConstraints col = new ColumnConstraints();
@@ -52,12 +53,13 @@ public class CatalogController implements Initializable {
     void bind(Node broker) {
         this.broker = broker;
 
-        broker.addEventHandler(CatalogEvent.UPDATE, e -> {
-            revert.setDisable(e.getCatalog().isActual());
-            apply.setDisable(e.getCatalog().isActual());
+        broker.addEventHandler(CatalogEvent.UPDATE, event -> {
+            resolveAction.setDisable(!event.getCatalog().hasDuplicates());
+            revert.setDisable(event.getCatalog().isActual());
+            apply.setDisable(event.getCatalog().isActual());
         });
 
-        root.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+        root.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             DirectoryChooser chooser = new DirectoryChooser();
             File file = chooser.showDialog(broker.getScene().getWindow());
             if (null == file) return;
@@ -85,6 +87,7 @@ public class CatalogController implements Initializable {
             broker.fireEvent(createEvent(CatalogEvent.IMPORT).setFile(file));
         });
 
+        resolveAction.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> broker.fireEvent(createEvent(CatalogEvent.RESOLVE)));
         revert.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> broker.fireEvent(createEvent(CatalogEvent.REVERT)));
         apply.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> broker.fireEvent(createEvent(CatalogEvent.APPLY)));
 

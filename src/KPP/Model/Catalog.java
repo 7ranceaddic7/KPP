@@ -16,6 +16,8 @@ import java.util.Objects;
 
 public class Catalog {
     private ArrayList<Part> parts = new ArrayList<>();
+    private ArrayList<String> index = new ArrayList<>();
+    private ArrayList<String> duplicates = new ArrayList<>();
 
     public Catalog bind(Node broker) {
         broker.addEventHandler(CatalogEvent.DIRECTORY, event -> {
@@ -49,6 +51,23 @@ public class Catalog {
             }
         });
 
+        broker.addEventHandler(CatalogEvent.RESOLVE, event -> {
+            ArrayList<String> removed = new ArrayList<>();
+
+            for (String duplicate : duplicates) {
+                Part active = find(duplicate, true);
+                Part purged = find(duplicate, false);
+                if (null == active || null == purged) continue;
+                removed.add(duplicate);
+                parts.remove(purged);
+                active.toggle();
+                active.apply(true);
+            }
+
+            duplicates.removeAll(removed);
+            broker.fireEvent(new CatalogEvent(CatalogEvent.UPDATE, event));
+        });
+
         broker.addEventHandler(CatalogEvent.IMPORT, event -> {
             try (
                     JsonReader reader = new JsonReader(new FileReader(event.getFile()))
@@ -76,6 +95,13 @@ public class Catalog {
             Part part = Part.create(file);
             if (null == part) continue;
             parts.add(part);
+
+            if (index.contains(part.getName())) {
+                duplicates.add(part.getName());
+                continue;
+            }
+
+            index.add(part.getName());
         }
 
         return this;
@@ -124,5 +150,19 @@ public class Catalog {
         }
 
         return true;
+    }
+
+    public boolean hasDuplicates()
+    {
+        return !duplicates.isEmpty();
+    }
+
+    private Part find(String name, boolean state)
+    {
+        for (Part part : parts) {
+            if (part.getName().equals(name) && part.isState(state)) return part;
+        }
+
+        return null;
     }
 }

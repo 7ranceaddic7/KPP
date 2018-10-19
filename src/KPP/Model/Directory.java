@@ -5,7 +5,7 @@ import java.io.File;
 public class Directory extends File {
     private String label;
 
-    public static Directory create(File dir) {
+    static Directory create(File dir) {
         Directory directory = new Directory(dir);
 
         directory.label = dir.getName();
@@ -13,7 +13,7 @@ public class Directory extends File {
         return directory;
     }
 
-    public static Directory create(File dir, String label) {
+    static Directory create(File dir, String label) {
         Directory directory = new Directory(dir);
 
         directory.label = label;
@@ -25,7 +25,7 @@ public class Directory extends File {
         super(dir.getAbsolutePath());
     }
 
-    public String getLabel()
+    String getLabel()
     {
         return label;
     }

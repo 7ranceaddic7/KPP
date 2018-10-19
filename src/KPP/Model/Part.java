@@ -133,10 +133,19 @@ public class Part {
         return this.state == state;
     }
 
-    public boolean apply() {
+    public boolean apply()
+    {
+        return apply(false);
+    }
+
+    public boolean apply(boolean force) {
         if (!isActual()) {
             File from = new File(values.get("file"));
             File to = new File(state ? values.get("file").replace(".purged", "") : values.get("file") + ".purged");
+
+            if (force && to.exists()) {
+                to.delete();
+            }
 
             if (from.renameTo(to)) {
                 values.put("file", to.getAbsolutePath());

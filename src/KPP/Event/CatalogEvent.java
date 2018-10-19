@@ -22,6 +22,7 @@ public class CatalogEvent extends Event {
     public static final EventType<CatalogEvent> TOGGLE = new EventType<>("TOGGLE");
     public static final EventType<CatalogEvent> IMPORT = new EventType<>("IMPORT");
     public static final EventType<CatalogEvent> EXPORT = new EventType<>("EXPORT");
+    public static final EventType<CatalogEvent> RESOLVE = new EventType<>("RESOLVE");
 
     private List<Part> parts;
     private Directory directory;

@@ -19,15 +19,16 @@
     <Label GridPane.columnIndex="0" GridPane.rowIndex="2">Backup</Label>
     <Button fx:id="exportAction" GridPane.columnIndex="1" GridPane.rowIndex="2" maxWidth="Infinity" disable="true">save</Button>
     <Button fx:id="importAction" GridPane.columnIndex="2" GridPane.rowIndex="2" maxWidth="Infinity" disable="true">load</Button>
+    <Button fx:id="resolveAction" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.columnSpan="2" maxWidth="Infinity" disable="true">resolve</Button>
 
-    <Label GridPane.columnIndex="0" GridPane.rowIndex="5">Directory</Label>
-    <ComboBox fx:id="directory" GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.columnSpan="2" maxWidth="Infinity" disable="true"/>
-    <Label GridPane.columnIndex="0" GridPane.rowIndex="6">Category</Label>
-    <ComboBox fx:id="category" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.columnSpan="2" maxWidth="Infinity" disable="true"/>
-    <Label GridPane.columnIndex="0" GridPane.rowIndex="7">Search</Label>
-    <TextField fx:id="term" GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.columnSpan="2" disable="true"/>
+    <Label GridPane.columnIndex="0" GridPane.rowIndex="6">Directory</Label>
+    <ComboBox fx:id="directory" GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.columnSpan="2" maxWidth="Infinity" disable="true"/>
+    <Label GridPane.columnIndex="0" GridPane.rowIndex="7">Category</Label>
+    <ComboBox fx:id="category" GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.columnSpan="2" maxWidth="Infinity" disable="true"/>
+    <Label GridPane.columnIndex="0" GridPane.rowIndex="8">Search</Label>
+    <TextField fx:id="term" GridPane.columnIndex="1" GridPane.rowIndex="8" GridPane.columnSpan="2" disable="true"/>
 
-    <Label GridPane.columnIndex="0" GridPane.rowIndex="10">Action</Label>
-    <Button fx:id="revert" GridPane.columnIndex="1" GridPane.rowIndex="10" disable="true" maxWidth="Infinity">revert</Button>
-    <Button fx:id="apply" GridPane.columnIndex="2" GridPane.rowIndex="10" disable="true" maxWidth="Infinity">apply</Button>
+    <Label GridPane.columnIndex="0" GridPane.rowIndex="11">Action</Label>
+    <Button fx:id="revert" GridPane.columnIndex="1" GridPane.rowIndex="11" disable="true" maxWidth="Infinity">revert</Button>
+    <Button fx:id="apply" GridPane.columnIndex="2" GridPane.rowIndex="11" disable="true" maxWidth="Infinity">apply</Button>
 </GridPane>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+
+<?import javafx.scene.control.Button?>
+<GridPane fx:controller="KPP.Controller.PropertyController" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" hgap="15" vgap="10">
+    <HBox GridPane.columnIndex="0" GridPane.rowIndex="0" alignment="CENTER_LEFT">
+        <Label fx:id="title" style="-fx-font-weight: bold">Properties</Label>
+    </HBox>
+    <HBox GridPane.columnIndex="1" GridPane.rowIndex="0" alignment="CENTER_RIGHT">
+        <Label fx:id="amount"/>
+    </HBox>
+    <TableView fx:id="table" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+        <columns>
+            <TableColumn text="Key">
+                <cellValueFactory>
+                    <PropertyValueFactory property="key"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn text="Value">
+                <cellValueFactory>
+                    <PropertyValueFactory property="value"/>
+                </cellValueFactory>
+            </TableColumn>
+        </columns>
+    </TableView>
+    <Button fx:id="edit" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2" maxWidth="Infinity" disable="true">edit</Button>
+</GridPane>

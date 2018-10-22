@@ -14,4 +14,4 @@ Inspect source: https://github.com/craidler/KPP
 
 Screenshot:
 
-![Screenshot of KPP](https://raw.githubusercontent.com/craidler/KPP/master/KPP.01.png)
+![Screenshot of KPP](https://raw.githubusercontent.com/craidler/KPP/master/KPP.png)

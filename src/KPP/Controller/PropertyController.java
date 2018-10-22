@@ -3,59 +3,37 @@ package KPP.Controller;
 import KPP.Event.CatalogEvent;
 import KPP.Model.Part;
 import KPP.Model.Property;
+import KPP.Service.Broker;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
-import javafx.scene.input.MouseEvent;
 
-import java.awt.Desktop;
-import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
 public class PropertyController implements Initializable {
     public TableView<Property> table;
-    public Button edit;
     public Label amount;
 
-    private Part part;
-
     public void initialize(URL location, ResourceBundle resources) {
-        edit.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-            try {
-                if (null != part){
-                    Desktop.getDesktop().open(new File(part.getValues().get("file")));
-                }
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
+        Broker.listen(CatalogEvent.DISPLAY, this::onDisplay);
     }
 
-    PropertyController bind(Node broker)
+    private void onDisplay(CatalogEvent event)
     {
-        broker.addEventHandler(CatalogEvent.DISPLAY, e -> {
-            List<Part> parts = e.getParts();
-            if (null == parts || parts.isEmpty()) return;
+        List<Part> parts = event.getParts();
 
-            part = parts.get(0);
-            edit.setDisable(false);
-            table.setItems(FXCollections.observableArrayList(part.getProperties()));
-            amount.setText(String.valueOf(table.getItems().size()));
-        });
+        if (!parts.isEmpty()) {
+            ObservableList<Property> properties = FXCollections.observableArrayList(parts.get(0).getProperties());
+            amount.setText(String.valueOf(properties.size()));
+            table.setItems(properties);
+            return;
+        }
 
-        broker.addEventHandler(CatalogEvent.UPDATE, event -> {
-            part = null;
-            edit.setDisable(true);
-            table.getItems().clear();
-            amount.setText("");
-        });
-
-        return this;
+        amount.setText("");
+        table.getItems().clear();
     }
 }

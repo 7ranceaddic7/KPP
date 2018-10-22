@@ -2,10 +2,10 @@ package KPP.Controller;
 
 import KPP.Event.CatalogEvent;
 import KPP.Model.Part;
+import KPP.Service.Broker;
 import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
@@ -22,41 +22,17 @@ public class PartlistController implements Initializable {
     public Label amount;
     public Label title;
 
-    private FilteredList<Part> filtered;
-    private CatalogEvent event;
+    private FilteredList<Part> filtered = new FilteredList<>(FXCollections.observableArrayList());
     private Boolean active;
 
     public void initialize(URL location, ResourceBundle resources) {
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-    }
+        table.addEventHandler(MouseEvent.MOUSE_CLICKED, this::onSelect);
+        action.addEventHandler(MouseEvent.MOUSE_CLICKED, this::onAction);
 
-    PartlistController bind(Node broker)
-    {
-        table.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-            if (null == event) return;
-            List<Part> parts = table.getSelectionModel().getSelectedItems();
-
-            if (1 == e.getClickCount()) {
-                broker.fireEvent(event.setType(CatalogEvent.DISPLAY).setParts(parts));
-                return;
-            }
-
-            if (2 == e.getClickCount()) {
-                broker.fireEvent(event.setType(CatalogEvent.TOGGLE).setParts(parts));
-                return;
-            }
-        });
-
-        action.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-            List<Part> parts = table.getSelectionModel().getSelectedItems();
-            broker.fireEvent(event.setType(CatalogEvent.TOGGLE).setParts(parts));
-        });
-
-        broker.addEventHandler(CatalogEvent.UPDATE, this::onUpdate);
-        broker.addEventHandler(CatalogEvent.CATEGORY, this::onChangeFilter);
-        broker.addEventHandler(CatalogEvent.SEARCH, this::onChangeFilter);
-
-        return this;
+        Broker.listen(CatalogEvent.UPDATE, this::onUpdate);
+        Broker.listen(CatalogEvent.UPDATE, this::onFilter);
+        Broker.listen(CatalogEvent.FILTER, this::onFilter);
     }
 
     void setActive(boolean active) {
@@ -65,18 +41,30 @@ public class PartlistController implements Initializable {
         this.active = active;
     }
 
-    private void onChangeFilter(CatalogEvent e)
-    {
-        if (null == filtered) return;
-        filtered.setPredicate(part -> part.isState(active) && part.matches(e.getTerm()) && part.matches(e.getCategory()));
+    private void onAction(MouseEvent event) {
+        List<Part> parts = table.getSelectionModel().getSelectedItems();
+        Broker.dispatch(new CatalogEvent(CatalogEvent.TOGGLE).setParts(parts));
+    }
+
+    private void onFilter(CatalogEvent event) {
+        filtered.setPredicate(part -> part.isState(active) && part.matches(event.getTerm()) && part.matches(event.getCategory()));
         amount.setText(String.valueOf(filtered.size()));
         action.setDisable(filtered.isEmpty());
     }
 
-    private void onUpdate(CatalogEvent e)
-    {
-        filtered = FXCollections.observableArrayList(e.getCatalog().getParts()).filtered(part -> part.isState(active));
+    private void onSelect(MouseEvent event) {
+        List<Part> parts = table.getSelectionModel().getSelectedItems();
+
+        if (1 == event.getClickCount()) {
+            Broker.dispatch(new CatalogEvent(CatalogEvent.DISPLAY).setParts(parts));
+            return;
+        }
+
+        Broker.dispatch(new CatalogEvent(CatalogEvent.TOGGLE).setParts(parts));
+    }
+
+    private void onUpdate(CatalogEvent event) {
+        filtered = FXCollections.observableArrayList(event.getCatalog().getParts()).filtered(part -> part.isState(active));
         table.setItems(filtered);
-        onChangeFilter(event = e);
     }
 }

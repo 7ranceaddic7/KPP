@@ -4,10 +4,9 @@ import KPP.Event.CatalogEvent;
 import KPP.Model.Catalog;
 import KPP.Model.Category;
 import KPP.Model.Directory;
+import KPP.Service.Broker;
 import javafx.collections.FXCollections;
-import javafx.event.EventType;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -23,22 +22,20 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class CatalogController implements Initializable {
-    public ComboBox<Category> category;
-    public ComboBox<Directory> directory;
+    public ComboBox<Category> cat;
+    public ComboBox<Directory> dir;
+    public TextField trm;
     public GridPane pane;
-    public TextField term;
-    public Button revert;
-    public Button apply;
-    public Button root;
     public Label amount;
 
-    private Catalog catalog;
-    private Node broker;
+    public Button root;
+    public Button app;
+    public Button exp;
+    public Button imp;
+    public Button res;
+    public Button rev;
 
-
-    public Button exportAction;
-    public Button importAction;
-    public Button resolveAction;
+    private Catalog catalog = new Catalog();
 
     public void initialize(URL location, ResourceBundle resources) {
         ColumnConstraints col = new ColumnConstraints();
@@ -48,89 +45,70 @@ public class CatalogController implements Initializable {
         col.setPercentWidth(35);
         pane.getColumnConstraints().add(col);
         pane.getColumnConstraints().add(col);
+
+        Broker.listen(CatalogEvent.UPDATE, this::onUpdate);
+
+        root.addEventHandler(MouseEvent.MOUSE_CLICKED, this::onRoot);
+        exp.addEventHandler(MouseEvent.MOUSE_CLICKED, this::onExport);
+        imp.addEventHandler(MouseEvent.MOUSE_CLICKED, this::onImport);
+        app.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> Broker.dispatch(new CatalogEvent(CatalogEvent.APPLY)));
+        res.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> Broker.dispatch(new CatalogEvent(CatalogEvent.RESOLVE)));
+        rev.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> Broker.dispatch(new CatalogEvent(CatalogEvent.REVERT)));
+
+        dir.valueProperty().addListener((observable, oldValue, newValue) -> onDirectory(newValue));
+        cat.valueProperty().addListener(observable -> onFilter());
+        trm.textProperty().addListener(observable -> onFilter());
     }
 
-    void bind(Node broker) {
-        this.broker = broker;
+    private void onDirectory(Directory directory) {
+        if (null == directory) return;
+        Broker.dispatch(new CatalogEvent(CatalogEvent.DIRECTORY).setDirectory(directory));
 
-        broker.addEventHandler(CatalogEvent.UPDATE, event -> {
-            resolveAction.setDisable(!event.getCatalog().hasDuplicates());
-            revert.setDisable(event.getCatalog().isActual());
-            apply.setDisable(event.getCatalog().isActual());
-        });
-
-        root.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            DirectoryChooser chooser = new DirectoryChooser();
-            File file = chooser.showDialog(broker.getScene().getWindow());
-            if (null == file) return;
-
-            catalog = new Catalog();
-            catalog.bind(broker);
-
-            onChangeRoot(file);
-
-            exportAction.setDisable(false);
-            importAction.setDisable(false);
-        });
-
-        exportAction.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            FileChooser chooser = new FileChooser();
-            File file = chooser.showSaveDialog(broker.getScene().getWindow());
-            if (null == file) return;
-            broker.fireEvent(createEvent(CatalogEvent.EXPORT).setFile(file));
-        });
-
-        importAction.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            FileChooser chooser = new FileChooser();
-            File file = chooser.showOpenDialog(broker.getScene().getWindow());
-            if (null == file) return;
-            broker.fireEvent(createEvent(CatalogEvent.IMPORT).setFile(file));
-        });
-
-        resolveAction.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> broker.fireEvent(createEvent(CatalogEvent.RESOLVE)));
-        revert.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> broker.fireEvent(createEvent(CatalogEvent.REVERT)));
-        apply.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> broker.fireEvent(createEvent(CatalogEvent.APPLY)));
-
-        directory.valueProperty().addListener(((observable, oldValue, newValue) -> onChangeDirectory(newValue)));
-        category.valueProperty().addListener(((observable, oldValue, newValue) -> onChangeCategory(newValue)));
-        term.textProperty().addListener(((observable, oldValue, newValue) -> onChangeSearch(newValue)));
-    }
-
-    private void onChangeCategory(Category category) {
-        broker.fireEvent(createEvent(CatalogEvent.CATEGORY).setCategory(category));
-    }
-
-    private void onChangeDirectory(Directory directory) {
-        broker.fireEvent(createEvent(CatalogEvent.DIRECTORY).setDirectory(directory));
-        category.setItems(FXCollections.observableArrayList(catalog.getCategories()));
-        category.getSelectionModel().selectFirst();
+        trm.setText("");
         amount.setText(String.valueOf(catalog.getParts().size()));
+        cat.setItems(FXCollections.observableArrayList(catalog.getCategories()));
+        cat.getSelectionModel().selectFirst();
     }
 
-    private void onChangeRoot(File file) {
-        broker.fireEvent(createEvent(CatalogEvent.ROOT).setFile(file));
-        directory.setItems(FXCollections.observableArrayList(catalog.getDirectories(file)));
-        directory.getSelectionModel().selectFirst();
+    private void onFilter()
+    {
+        Category category = cat.getSelectionModel().getSelectedItem();
+        String term = trm.getText();
+        Broker.dispatch(new CatalogEvent(CatalogEvent.FILTER).setCategory(category).setTerm(term));
+    }
+
+    private void onImport(MouseEvent event) {
+        FileChooser chooser = new FileChooser();
+        File file = chooser.showOpenDialog(pane.getParent().getScene().getWindow());
+        if (null != file) Broker.dispatch(new CatalogEvent(CatalogEvent.IMPORT).setFile(file));
+    }
+
+    private void onExport(MouseEvent event) {
+        FileChooser chooser = new FileChooser();
+        File file = chooser.showSaveDialog(pane.getParent().getScene().getWindow());
+        if (null != file) Broker.dispatch(new CatalogEvent(CatalogEvent.EXPORT).setFile(file));
+    }
+
+    private void onRoot(MouseEvent event) {
+        DirectoryChooser chooser = new DirectoryChooser();
+        File file = chooser.showDialog(pane.getParent().getScene().getWindow());
+        if (null == file) return;
 
         root.setText(file.getAbsolutePath());
-        directory.setDisable(false);
-        category.setDisable(false);
-        term.setDisable(false);
+        dir.setDisable(false);
+        cat.setDisable(false);
+        trm.setDisable(false);
+        exp.setDisable(false);
+        imp.setDisable(false);
+
+        dir.setItems(FXCollections.observableArrayList(catalog.getDirectories(file)));
+        dir.getSelectionModel().selectFirst();
     }
 
-    private void onChangeSearch(String term) {
-        broker.fireEvent(createEvent(CatalogEvent.SEARCH).setTerm(term));
-    }
-
-    private CatalogEvent createEvent(EventType<CatalogEvent> type) {
-        CatalogEvent event = new CatalogEvent(type);
-
-        event.setDirectory(directory.getSelectionModel().getSelectedItem());
-        event.setCategory(category.getSelectionModel().getSelectedItem());
-        event.setCatalog(catalog);
-        event.setFile(new File(root.getText()));
-        event.setTerm(term.getText());
-
-        return event;
+    private void onUpdate(CatalogEvent event) {
+        Catalog catalog = event.getCatalog();
+        app.setDisable(catalog.isActual());
+        res.setDisable(!catalog.hasDuplicates());
+        rev.setDisable(catalog.isActual());
     }
 }

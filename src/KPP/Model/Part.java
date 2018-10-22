@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -43,7 +44,7 @@ public class Part {
                 BufferedReader reader = new BufferedReader(new FileReader(file))
         ) {
             Pattern valuePattern = Pattern.compile(".*autoloc.+?=(.+)$", Pattern.CASE_INSENSITIVE);
-            Pattern linePattern = Pattern.compile("^(.+?)\\s*=\\s*(.+)$");
+            Pattern linePattern = Pattern.compile("^\\s*(.+?)\\s*=\\s*(.+)$");
             String line = reader.readLine();
             Integer depth = 0;
 
@@ -59,13 +60,10 @@ public class Part {
                         String value = lineMatcher.group(2).trim();
                         String key = lineMatcher.group(1).trim().toLowerCase();
 
-                        Matcher valueMatcher = valuePattern.matcher(value);
-
-                        if (valueMatcher.matches()) {
-                            value = valueMatcher.group(1).trim();
+                        if (!key.substring(0, 2).equals("//")) {
+                            Matcher valueMatcher = valuePattern.matcher(value);
+                            values.put(key, valueMatcher.matches() ? valueMatcher.group(1).trim() : value);
                         }
-
-                        values.put(key, value);
                     }
                 }
 
@@ -98,12 +96,7 @@ public class Part {
         return name.get();
     }
 
-    public boolean getState() {
-        return state;
-    }
-
-    public void setState(boolean state)
-    {
+    public void setState(boolean state) {
         this.state = state;
     }
 
@@ -118,11 +111,9 @@ public class Part {
             properties.add(Property.create(entry));
         }
 
-        return properties;
-    }
+        properties.sort(Comparator.comparing(Property::getKey));
 
-    public Hashtable<String, String> getValues() {
-        return values;
+        return properties;
     }
 
     public boolean isActual() {
@@ -133,8 +124,7 @@ public class Part {
         return this.state == state;
     }
 
-    public boolean apply()
-    {
+    public boolean apply() {
         return apply(false);
     }
 

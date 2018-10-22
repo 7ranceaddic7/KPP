@@ -11,11 +11,9 @@ import java.io.File;
 import java.util.List;
 
 public class CatalogEvent extends Event {
-    public static final EventType<CatalogEvent> ROOT = new EventType<>("ROOT");
     public static final EventType<CatalogEvent> APPLY = new EventType<>("APPLY");
     public static final EventType<CatalogEvent> REVERT = new EventType<>("REVERT");
-    public static final EventType<CatalogEvent> SEARCH = new EventType<>("SEARCH");
-    public static final EventType<CatalogEvent> CATEGORY = new EventType<>("CATEGORY");
+    public static final EventType<CatalogEvent> FILTER = new EventType<>("FILTER");
     public static final EventType<CatalogEvent> DIRECTORY = new EventType<>("DIRECTORY");
     public static final EventType<CatalogEvent> UPDATE = new EventType<>("UPDATE");
     public static final EventType<CatalogEvent> DISPLAY = new EventType<>("DISPLAY");
